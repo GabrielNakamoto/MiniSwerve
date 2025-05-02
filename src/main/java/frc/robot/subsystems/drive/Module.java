@@ -64,20 +64,12 @@ public class Module {
         return observations;
     }
 
-    public void runSetpoint(double vx, double vy, Rotation2d omega, Rotation2d driveYaw) {
-        // Translation2d fieldRelVelocity = new Translation2d(vx, vx)
-       //     .rotateBy(driveYaw);
-        var state = fromChassisVelocity(
-            vx,
-            vy,
-            omega,
-            driveYaw);
+    public void runSetpoint(double vx, double vy, double omega, Rotation2d driveYaw) {
+        var setpoint = fromChassisVelocity(vx,vy, omega, driveYaw);
 
-        // m/s -> rpm
-        // double driveVelocity = (state.getTranslation().getNorm() / (2 * Math.PI * radius)) * 60;
-        Logger.recordOutput("Drive/module" + Integer.toString(index) + "/requestedVelocity", state.getTranslation().getNorm());
-        this.io.runDriveVelocity(state.getTranslation().getNorm());
-        this.io.runTurnAngle(state.getRotation());
+        Logger.recordOutput("Drive/module" + Integer.toString(index) + "/requestedVelocity", setpoint.getNorm());
+        this.io.runDriveVelocity(setpoint.getNorm());
+        this.io.runTurnAngle(setpoint.getAngle());
     }
 
     public void runTurnVoltage(Voltage requested) {
@@ -96,20 +88,15 @@ public class Module {
         return inputs.driveVelocityRadsPerSecond * DriveConstants.moduleWheelRadius.in(Meters);
     }
 
-    public Transform2d fromChassisVelocity(double vx, double vy, Rotation2d omega, Rotation2d driveYaw){
+    public Translation2d fromChassisVelocity(double vx, double vy, double omega, Rotation2d driveYaw){
         Translation2d translationVelocity = new Translation2d(vx, vy);
-        // translationVelocity = translationVelocity.rotateBy(driveYaw); // is this right??
-        double vtScalar = omega.getRadians() * radius;
 
-        // clockwise or counterclockwise?
         // assuming counterclockwise
         Translation2d tangentVelocity = new Translation2d(-chassisPosition.getY(), chassisPosition.getX())
-            .div(radius)
-            .times(vtScalar);
-
-        Translation2d moduleVelocity = translationVelocity.plus(tangentVelocity);
+            .times(omega);
 
         // TODO: optimize angle
-        return new Transform2d(moduleVelocity, moduleVelocity.getAngle());
+
+        return translationVelocity.plus(tangentVelocity);
     }
 }

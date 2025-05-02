@@ -102,16 +102,8 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // return DriveCommands.driveWithJoysticks(drive, () -> 1.0, () -> 0.0, () -> 0.0);
-    return DriveCommands.feedForwardCharacterization(drive);
-    /*
-    return Commands.run(() -> {
-      drive.runDriveVoltage(Volts.of(0.075));
-      // drive.runTurnVoltage(Volts.of(-0.5));
-    }, drive);*/
-    // return DriveCommands.driveWithJoysticks(drive, () -> 1.0, () -> 0, () -> -1.0);
-    // return Commands.none();
-    // An example command will be run in autonomous
+    return DriveCommands.driveWithJoysticks(drive, () -> -1.0, () -> -0.25, () -> 0.0);
+    // return Commands.run(() -> drive.runVelocity(Drive.getMaximumLinearSpeedMetersPerSec(),0.0, Rotation2d.fromRadians(0.85 * Drive.getMaximumAngularSpeedRadPerSec())), drive);
   }
 
   public void resetSimulationField() {
@@ -127,5 +119,6 @@ public class RobotContainer {
         SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
     Logger.recordOutput("FieldSimulation/RobotPose",
       swerveDriveSimulation.getSimulatedDriveTrainPose());
+    Logger.recordOutput("FieldSimulation/DriveSpeed", swerveDriveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative());
   }
 }

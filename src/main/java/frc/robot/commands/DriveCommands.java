@@ -45,20 +45,18 @@ public class DriveCommands {
             fieldVelocity = fieldVelocity.times(Drive.getMaximumLinearSpeedMetersPerSec());
             omega = omega * Drive.getMaximumAngularSpeedRadPerSec();
 
-            // Translation2d robotVelocity = fieldVelocity.rotateBy(drive.getYaw());
-
             Logger.recordOutput("DriveCommand/fieldVelocity", fieldVelocity);
             Logger.recordOutput("Controller/inputX", inputX.getAsDouble());
             Logger.recordOutput("Controller/inputY", inputY.getAsDouble());
             Logger.recordOutput("Controller/inputOmega", inputOmega.getAsDouble());
-            drive.runVelocity(fieldVelocity, Rotation2d.fromRadians(omega));
+            drive.runVelocity(fieldVelocity, omega);
         }, drive);
     }    
 
     public static Command feedForwardCharacterization(Drive drive) {
         Timer timer = new Timer();
         return Commands.run(() -> {
-            drive.runVelocity(new Translation2d(timer.get() * 0.5, 0.0), Rotation2d.kZero);
+            drive.runVelocity(new Translation2d(timer.get() * 0.5, 0.0), 0.0);
         }, drive)
             .until(() -> drive.getDriveVelocity().getNorm() > 1e-6)
             .beforeStarting(() -> timer.start())

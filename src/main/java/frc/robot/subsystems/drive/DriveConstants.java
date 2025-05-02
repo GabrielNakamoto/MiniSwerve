@@ -59,14 +59,14 @@ public class DriveConstants {
     public static final int turnCurrentLimit = 100;
     
     // reduction -> decrease speed, increase torque through gearbox
-    public static final double driveMotorReduction = 6.746031746031747; 
-    public static final double turnMotorReduction = 21.428571428571427;
+    public static final double driveGearRatio = 6.746031746031747; 
+    public static final double turnGearRatio = 21.428571428571427;
 
     // Drive Encoder configuration
     public static final double drivePositionEncoderFactor =
-        2 * Math.PI * driveMotorReduction; // Rotations -> wheel radians
+        2 * Math.PI * driveGearRatio; // Rotations -> wheel radians
     public static final double driveEncoderVelocityFactor =
-        (2 * Math.PI) / 60 / driveMotorReduction; // Rotor RPM -> wheel rads / sec
+        (2 * Math.PI) / 60 / turnGearRatio; // Rotor RPM -> wheel rads / sec
     public static final int driveEncoderPeriodMs = 10;
     // depth controls how many samples will be averaged to return a reading
     // noise vs responsiveness
@@ -88,9 +88,9 @@ public class DriveConstants {
     
     // Turn Encoder configuration
     public static final double turnEncoderPositionFactor =
-        2 * Math.PI * driveMotorReduction;
+        2 * Math.PI * turnGearRatio;
     public static final double turnEncoderVelocityFactor =
-        (2 * Math.PI) / 60 / driveMotorReduction;
+        (2 * Math.PI) / 60 / turnGearRatio;
     public static final int turnEncoderDepth = 2;
 
     // Real closed loop tuning

@@ -6,9 +6,10 @@ package frc.robot.subsystems.drive;
 
 import static frc.robot.subsystems.drive.DriveConstants.bumperLength;
 import static frc.robot.subsystems.drive.DriveConstants.bumperWidth;
+import static frc.robot.subsystems.drive.DriveConstants.driveGearRatio;
 import static frc.robot.subsystems.drive.DriveConstants.modulePositions;
 import static frc.robot.subsystems.drive.DriveConstants.robotMass;
-
+import static frc.robot.subsystems.drive.DriveConstants.turnGearRatio;
 import static edu.wpi.first.units.Units.*;
 
 import java.util.Optional;
@@ -43,8 +44,8 @@ public class Drive extends SubsystemBase {
     .withSwerveModule(new SwerveModuleSimulationConfig(
       DCMotor.getNeo550(1),
       DCMotor.getNeo550(1),
-      6.746031746031747,
-      21.428571428571427,
+      driveGearRatio,
+      turnGearRatio,
       Volts.of(0.2),
       Volts.of(0.2),
       Inches.of(1.967),
@@ -79,11 +80,11 @@ public class Drive extends SubsystemBase {
     return 10.0;
   }
 
-  public void runVelocity(double vx, double vy, Rotation2d omega) {
+  public void runVelocity(double vx, double vy, double omega) {
     runVelocity(new Translation2d(vx, vy), omega);
   }
 
-  public void runVelocity(Translation2d vl, Rotation2d omega) {
+  public void runVelocity(Translation2d vl, double omega) {
     Rotation2d driveYaw = gyroInputs.yawPosition;
 
     Logger.recordOutput("Drive/Requested/Omega", omega);
@@ -92,9 +93,9 @@ public class Drive extends SubsystemBase {
     if (DriverStation.isEnabled() && DriverStation.getAlliance().get() == Alliance.Red)
       driveYaw = driveYaw.plus(Rotation2d.k180deg);
 
-    vl.rotateBy(getYaw());
+    vl = vl.rotateBy(driveYaw);
     for (Module module : modules) {
-        module.runSetpoint(vl.getX(), vl.getY(), omega, gyroInputs.yawPosition);
+        module.runSetpoint(vl.getX(), vl.getY(), omega, driveYaw);
     }
   }
 

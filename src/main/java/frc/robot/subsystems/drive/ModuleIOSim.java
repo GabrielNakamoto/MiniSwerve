@@ -75,6 +75,8 @@ public class ModuleIOSim implements ModuleIO {
                 .mapToDouble((angle) -> angle.in(Radians)).toArray();
         inputs.odometryTurnPositions =
             moduleSim.getCachedSteerAbsolutePositions();
+        
+        Logger.recordOutput("Drive/module" + Integer.toString(index) + "/DriveSpeedMPS", inputs.driveVelocityRadsPerSecond * DriveConstants.moduleWheelRadius.in(Meters));
     }
 
     public void updateOutputs() {
