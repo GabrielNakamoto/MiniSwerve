@@ -13,6 +13,7 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 
 import static edu.wpi.first.units.Units.*;
+import static frc.robot.subsystems.drive.DriveConstants.driveEncoderDepth;
 
 import java.util.function.DoubleSupplier;
 
@@ -23,6 +24,9 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -102,8 +106,33 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return DriveCommands.driveWithJoysticks(drive, () -> -1.0, () -> -0.25, () -> 0.0);
-    // return Commands.run(() -> drive.runVelocity(Drive.getMaximumLinearSpeedMetersPerSec(),0.0, Rotation2d.fromRadians(0.85 * Drive.getMaximumAngularSpeedRadPerSec())), drive);
+    // return DriveCommands.feedForwardCharacterization(drive);
+    /*
+    Timer timer = new Timer();
+    return Commands.run(() -> {
+      Voltage voltsApplied = Volts.of(0.1 * timer.get());
+      Logger.recordOutput("Characterization/voltsApplied", voltsApplied);
+      drive.runDriveVoltage(voltsApplied);
+    }).beforeStarting(timer::start);*/
+
+    return Commands.run(() -> drive.runVelocity(Drive.getMaximumLinearSpeedMetersPerSec(), 0.0, 0.0, true), drive);
+    // return Commands.run(() -> drive.runDriveVoltage(Volts.of(6.0)), drive);
+
+    /*
+    return Commands.run(() -> {
+      drive.runVelocity(
+        Drive.getMaximumLinearSpeedMetersPerSec(),
+        0.35 * Drive.getMaximumLinearSpeedMetersPerSec(),
+        -0.25 * Drive.getMaximumAngularSpeedRadPerSec(),
+        true);
+    }, drive);*/
+    /*
+    return Commands.run(() -> drive.runVelocity(
+      Drive.getMaximumLinearSpeedMetersPerSec(),
+      0.0,
+      // 0.0),
+      -0.25 * Drive.getMaximumAngularSpeedRadPerSec()),
+      drive);*/
   }
 
   public void resetSimulationField() {

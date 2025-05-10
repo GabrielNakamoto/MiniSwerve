@@ -11,26 +11,31 @@ import edu.wpi.first.units.measure.Mass;
 
 public class DriveConstants {
 
+    public static final double theoreticalMaxSpeed = 2.31;
+
     public static final Distance bumperWidth = Inches.of(14); // this is actually without bumpers rn
     public static final Distance bumperLength = Inches.of(14);
 
-    public static final Distance moduleWheelRadius = Inches.of(2.0);
+    public static final Distance moduleWheelRadius = Inches.of(1.417323);
 
     public static final Mass robotMass = Kilograms.of(40);
 
+    public static final double W = 5.694;
+    public static final double L = 5.687;
+
     public static final Translation2d[] modulePositions = {
         new Translation2d(
-            Units.inchesToMeters(5.98),
-            Units.inchesToMeters(-6.336)), // FLS
+            Units.inchesToMeters(-W),
+            Units.inchesToMeters(L)), // FLS
         new Translation2d(
-            Units.inchesToMeters(5.98),
-            Units.inchesToMeters(6.336)), // FRS
+            Units.inchesToMeters(W),
+            Units.inchesToMeters(L)), // FRS
         new Translation2d(
-            Units.inchesToMeters(-5.98),
-            Units.inchesToMeters(-6.336)), // BLS
+            Units.inchesToMeters(-W),
+            Units.inchesToMeters(-L)), // BLS
         new Translation2d(
-            Units.inchesToMeters(-5.98),
-            Units.inchesToMeters(6.336)) // BRS
+            Units.inchesToMeters(W),
+            Units.inchesToMeters(-L)) // BRS
     };
 
     public static final Rotation2d[] moduleZeroRotations = {
@@ -59,8 +64,8 @@ public class DriveConstants {
     public static final int turnCurrentLimit = 100;
     
     // reduction -> decrease speed, increase torque through gearbox
-    public static final double driveGearRatio = 6.746031746031747; 
-    public static final double turnGearRatio = 21.428571428571427;
+    public static final double driveGearRatio = (60 / 12) * (40 / 20) * (28 / 14);
+    public static final double turnGearRatio = (36 / 12) * (48 / 18);
 
     // Drive Encoder configuration
     public static final double drivePositionEncoderFactor =
@@ -108,12 +113,14 @@ public class DriveConstants {
 
 
     // Sim closed loop tuning
-    public static final double driveSimKp = 1.5;
+    public static final double driveSimKp = 0.0;
     public static final double driveSimKd = 0.0;
 
-    public static final double driveSimKv = 2.65;
-    public static final double driveSimKs = 0.03;
+    // public static final double driveSimKv = 0.1365;
+    public static final double driveSimKv = 0.0789;
+    // public static final double driveSimKv = 4.61;
+    public static final double driveSimKs = 0.0;
 
-    public static final double turnSimKp = 4.5;
+    public static final double turnSimKp = 0.5;
     public static final double turnSimKd = 0.0;
 }

@@ -46,9 +46,9 @@ public class Drive extends SubsystemBase {
       DCMotor.getNeo550(1),
       driveGearRatio,
       turnGearRatio,
-      Volts.of(0.2),
-      Volts.of(0.2),
-      Inches.of(1.967),
+      Volts.of(0.1),
+      Volts.of(0.1),
+      DriveConstants.moduleWheelRadius,
       KilogramSquareMeters.of(0.01),
       1.2));
 
@@ -73,29 +73,34 @@ public class Drive extends SubsystemBase {
   }
 
   public static double getMaximumLinearSpeedMetersPerSec() {
-    return 6.7;
+    return DriveConstants.theoreticalMaxSpeed;
   }
 
   public static double getMaximumAngularSpeedRadPerSec() {
     return 10.0;
   }
 
-  public void runVelocity(double vx, double vy, double omega) {
-    runVelocity(new Translation2d(vx, vy), omega);
+  public void runVelocity(double vx, double vy, double omega, boolean fieldRelative) {
+    runVelocity(new Translation2d(vx, vy), omega, fieldRelative);
   }
 
-  public void runVelocity(Translation2d vl, double omega) {
-    Rotation2d driveYaw = gyroInputs.yawPosition;
-
+  public void runVelocity(Translation2d vl, double omega, boolean fieldRelative) {
     Logger.recordOutput("Drive/Requested/Omega", omega);
     Logger.recordOutput("Drive/Requested/Linear", vl);
 
-    if (DriverStation.isEnabled() && DriverStation.getAlliance().get() == Alliance.Red)
-      driveYaw = driveYaw.plus(Rotation2d.k180deg);
+    if (fieldRelative) {
+      // vl = vl.rotateBy(getRotation().unaryMinus());
+      boolean isFlipped = DriverStation.getAlliance().isPresent() &&
+          DriverStation.getAlliance().get() == Alliance.Red;
 
-    vl = vl.rotateBy(driveYaw);
+      Rotation2d robotHeading = getRotation()
+          .plus(isFlipped ? new Rotation2d(Math.PI) : Rotation2d.kZero);
+
+      vl = vl.rotateBy(robotHeading.unaryMinus());
+    }
+
     for (Module module : modules) {
-        module.runSetpoint(vl.getX(), vl.getY(), omega, driveYaw);
+        module.runSetpoint(vl.getX(), vl.getY(), omega);
     }
   }
 
@@ -111,7 +116,7 @@ public class Drive extends SubsystemBase {
     }
   }
 
-  public Rotation2d getYaw() {
+  public Rotation2d getRotation() {
     return gyroInputs.yawPosition;
   }
 

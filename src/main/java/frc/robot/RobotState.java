@@ -1,7 +1,6 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.*;
-import static frc.robot.subsystems.drive.DriveConstants.modulePositions;
+import static edu.wpi.first.units.Units.Meters;
 
 import java.util.Optional;
 
@@ -12,11 +11,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.Kinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.units.measure.AngularVelocity;
-import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.Module.ModuleStateObservation;
 
@@ -41,7 +35,9 @@ public class RobotState {
     }
 
     public void setOdometryPose(Pose2d pose) {
+        System.out.println("Reset odometry");
         odometryPose = pose;
+        lastObservation = null;
     }
 
     public void addOdometryObservation(OdometryObservation observation) {
@@ -52,19 +48,44 @@ public class RobotState {
 
         Translation2d robotDisplacement = Translation2d.kZero;
         for (int i = 0; i < 4; ++i) {
-            double moduleDisplacement = observation.modulePositions[i].drivePosition() -
+            double arcLength = observation.modulePositions[i].drivePosition() -
                 lastObservation.modulePositions[i].drivePosition();
 
             // convert from radians to meters
-            moduleDisplacement = moduleDisplacement * DriveConstants.moduleWheelRadius.in(Meters);
+            arcLength = arcLength * DriveConstants.moduleWheelRadius.in(Meters);
+            double omega = observation.modulePositions[i].yaw().minus(
+                lastObservation.modulePositions[i].yaw()).getRadians();
 
-            robotDisplacement = robotDisplacement.plus(new Pose2d(0.0, 0.0, lastObservation.modulePositions[i].yaw())
-                .transformBy(new Transform2d(moduleDisplacement, 0.0, Rotation2d.kZero)).getTranslation());
+            if (omega < 1e-6) {
+                Translation2d linearDisplacement = new Pose2d(0.0, 0.0, lastObservation.modulePositions[i].yaw())
+                    .transformBy(new Transform2d(arcLength, 0.0, Rotation2d.kZero)).getTranslation();
+                robotDisplacement = robotDisplacement.plus(linearDisplacement);
+                continue;
+            }
+
+            double radius = arcLength / omega;
+
+            Translation2d lastVector = new Pose2d(0.0, 0.0, Rotation2d.fromRadians(
+                lastObservation.modulePositions[i].yaw().getRadians() - (Math.PI / 2)))
+                .transformBy(new Transform2d(radius, 0.0, Rotation2d.kZero)).getTranslation();
+            Translation2d currentVector = lastVector.rotateBy(Rotation2d.fromRadians(omega));
+
+            Translation2d arcDisplacement = currentVector.minus(lastVector);
+
+            Logger.recordOutput("RobotState/arcLength", arcLength);
+            Logger.recordOutput("RobotState/omega", omega);
+            Logger.recordOutput("RobotState/radius", radius);
+            Logger.recordOutput("RobotState/lastVector", lastVector);
+            Logger.recordOutput("RobotState/currentVector", currentVector);
+            Logger.recordOutput("RobotState/arcDisplacement", arcDisplacement);
+
+            robotDisplacement = robotDisplacement.plus(arcDisplacement);
         }
         robotDisplacement = robotDisplacement.div(4)
             .rotateBy(lastObservation.gyroAngle.get());
 
-        this.odometryPose = new Pose2d(odometryPose.plus(new Transform2d(robotDisplacement, Rotation2d.kZero))
+
+        this.odometryPose = new Pose2d(odometryPose.transformBy(new Transform2d(robotDisplacement, Rotation2d.kZero))
             .getTranslation(), observation.gyroAngle().get());
 
         lastObservation = observation;

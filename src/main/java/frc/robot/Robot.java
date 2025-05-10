@@ -126,7 +126,7 @@ public class Robot extends LoggedRobot {
   /** This function is called once when the robot is first started up. */
   @Override
   public void simulationInit() {
-    RobotState.getInstance().setOdometryPose(new Pose2d(3, 3, Rotation2d.kZero));
+    m_robotContainer.resetSimulationField();
   }
 
   /** This function is called periodically whilst in simulation. */

@@ -64,11 +64,14 @@ public class Module {
         return observations;
     }
 
-    public void runSetpoint(double vx, double vy, double omega, Rotation2d driveYaw) {
-        var setpoint = fromChassisVelocity(vx,vy, omega, driveYaw);
+    public void runSetpoint(double vx, double vy, double omega) {
+        var setpoint = fromChassisVelocity(vx,vy, omega);
 
-        Logger.recordOutput("Drive/module" + Integer.toString(index) + "/requestedVelocity", setpoint.getNorm());
-        this.io.runDriveVelocity(setpoint.getNorm());
+        Logger.recordOutput("Drive/module" + Integer.toString(index) + "/requestedVelocity",
+            setpoint.getNorm());
+        Logger.recordOutput("Drive/module" + Integer.toString(index) + "/requestedVelocityRadPerSec",
+            setpoint.getNorm() / DriveConstants.moduleWheelRadius.in(Meters));
+        this.io.runDriveVelocity(setpoint.getNorm() / DriveConstants.moduleWheelRadius.in(Meters));
         this.io.runTurnAngle(setpoint.getAngle());
     }
 
@@ -88,15 +91,16 @@ public class Module {
         return inputs.driveVelocityRadsPerSecond * DriveConstants.moduleWheelRadius.in(Meters);
     }
 
-    public Translation2d fromChassisVelocity(double vx, double vy, double omega, Rotation2d driveYaw){
+    public Translation2d fromChassisVelocity(double vx, double vy, double omega){
         Translation2d translationVelocity = new Translation2d(vx, vy);
 
         // assuming counterclockwise
-        Translation2d tangentVelocity = new Translation2d(-chassisPosition.getY(), chassisPosition.getX())
-            .times(omega);
+
+        Translation2d tangentVelocity = new Translation2d(
+            chassisPosition.getY(),
+            -chassisPosition.getX()).times(omega);
 
         // TODO: optimize angle
-
         return translationVelocity.plus(tangentVelocity);
     }
 }
